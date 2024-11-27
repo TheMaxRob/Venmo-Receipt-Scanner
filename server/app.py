@@ -16,6 +16,8 @@ load_dotenv()
 # Initialize Venmo client
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 client = Client(access_token=ACCESS_TOKEN) if ACCESS_TOKEN else None
+if client == None:
+    print("client initialized as none")
 
 
 # Utility function to get the authenticated user's profile
@@ -136,6 +138,7 @@ def parse_receipt_endpoint():
 
         # Return parsed items
         if items:
+            print(f"Returning items: {items}")
             return jsonify({"items": items})
         else:
             return jsonify({"error": "No valid items found"}), 400
@@ -158,19 +161,27 @@ def should_exclude_line(line):
 
 
 # Route: Get the authenticated user's friends list
-@app.route('/friends-list', methods=["GET"])
+@app.route('/get-friends-list', methods=["GET"])
 def friends_list():
+    print("get-friends-list endpoint hit")
     if not client:
+        print("Venmo client is not initialized")
         return jsonify({"error": "Venmo client not initialized"}), 500
 
     try:
+        print("Fetching profile...")
         profile = get_user_profile(client)
         if not profile:
+            print("Failed to fetch user profile")
             return jsonify({"error": "Failed to fetch user profile"}), 500
 
+        print(f"Fetched profile: {profile.id}")
+        print("Fetching friend usernames...")
         friends = get_friends_usernames(client, profile.id)
+        print(f"Fetched friends: {friends}")
         return jsonify({"friends": friends})
     except Exception as e:
+        print(f"Exception occurred: {e}")
         return jsonify({"error": f"Failed to fetch friends list: {str(e)}"}), 500
 
 

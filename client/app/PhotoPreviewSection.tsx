@@ -16,15 +16,16 @@ const handleSubmitPhoto = async (photo: CameraCapturedPicture) => {
     } as any);
   
     try {
-      const response = await axios.post('http://10.44.203.175:5000/parse-receipt', formData, {
+      console.log("awaiting response");
+      const response = await axios.post('http://192.168.1.176:5000/parse-receipt', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
   
-      // Navigate to a results screen with the parsed data
+      // Navigate home with the parsed items
       router.push({
-        pathname: '/splitter',
+        pathname: '/home',
         params: { items: JSON.stringify(response.data.items) },
       });
     } catch (error) {
