@@ -2,10 +2,43 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Friend, Item } from 'types';
+import axios from 'axios';
+
+interface PaymentRequestItem {
+  assigned_to: string;
+  cost: number;
+  item: string;
+}
 
 export default function Review() {
   const { items } = useLocalSearchParams();
   const selectedFriends: Friend[] = items ? JSON.parse(items as string) : [];
+
+  const handlePayments = async () => {
+    try {
+      const assignedItems: PaymentRequestItem[] = [];
+      selectedFriends.forEach((friend) => {
+        friend.items?.forEach((item) => {
+          assignedItems.push({
+            assigned_to: friend.username,
+            cost: item.cost,
+            item: item.item
+          });
+        });
+      });
+  
+      const response = await axios.post(
+        'http://192.168.1.176:5000/request-payments', 
+        {
+          assigned_items: assignedItems,
+        }
+      );
+  
+      console.log("pPayment request response:", response.data);
+    } catch (error) {
+      console.error("Error requesting payments", error);
+    }
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -27,7 +60,7 @@ export default function Review() {
           </View>
         );
       })}
-      <Pressable style={styles.confirmButton}>
+      <Pressable style={styles.confirmButton} onPress={handlePayments}>
         <Text>Request Payments</Text>
       </Pressable>
     </ScrollView>
