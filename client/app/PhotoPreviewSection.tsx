@@ -23,6 +23,7 @@ const handleSubmitPhoto = async (photo: CameraCapturedPicture) => {
         },
       });
   
+      console.log("Passing params:", response.data.items);
       // Navigate home with the parsed items
       router.push({
         pathname: '/home',

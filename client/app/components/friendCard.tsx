@@ -1,29 +1,37 @@
-import { View, Text, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { forwardRef } from "react";
+import { View, Text, StyleSheet, LayoutChangeEvent } from "react-native";
 import { Friend } from "types";
 
-type FriendCardProps = {
+// 1) Define a prop interface with an optional onPositionReady
+interface FriendCardProps {
   friend: Friend;
-  size?: "small" | "large"; 
-};
+  size: string;
+}
 
-const FriendCard = ({ friend, size = "large" }: FriendCardProps) => {
-  const containerStyle =
-    size === "small" ? styles.smallContainer : styles.largeContainer;
-  const usernameStyle =
-    size === "small" ? styles.smallUsernameText : styles.largeUsernameText;
-  const moneyStyle =
-    size === "small" ? styles.smallMoneyText : styles.largeMoneyText;
+// 2) Pass that interface to forwardRef
+const FriendCard = forwardRef<View, FriendCardProps>(
+  ({ friend, size }, ref) => {
 
-  return (
+    const containerStyle =
+      size === "small" ? styles.smallContainer : styles.largeContainer;
+    const usernameStyle =
+      size === "small" ? styles.smallUsernameText : styles.largeUsernameText;
+    const moneyStyle =
+      size === "small" ? styles.smallMoneyText : styles.largeMoneyText;
+
+    
+
+    return (
       <View
+        ref={ref}
         style={friend.isSelected ? [containerStyle, styles.selected] : containerStyle}
       >
         <Text style={usernameStyle}>{friend.username}:</Text>
-        <Text style={moneyStyle}> ${friend.amount} </Text>
+        <Text style={moneyStyle}>${friend.amount}</Text>
       </View>
-  );
-};
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   smallContainer: {

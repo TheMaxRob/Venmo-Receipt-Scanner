@@ -1,5 +1,5 @@
 import { Slot, Stack } from "expo-router";
-import Camera from "./camera";
+import Camera from "./components/camera";
 
 export default function RootLayout() {
   return (

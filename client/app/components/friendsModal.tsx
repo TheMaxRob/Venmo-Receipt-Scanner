@@ -9,14 +9,16 @@ import { Item } from "types";
 type FriendsModalProps = {
   modalVisible: boolean;
   handleCloseModal: (highlightedFriends: Friend[]) => void;
+  selectedFriends: Friend[];
 };
 
 const FriendsModal: React.FC<FriendsModalProps> = ({
   modalVisible,
   handleCloseModal,
+  selectedFriends
 }) => {
   const [allFriends, setAllFriends] = useState<Friend[]>([]);
-  const [highlightedFriends, setHighlightedFriends] = useState<Friend[]>([]);
+  const [highlightedFriends, setHighlightedFriends] = useState<Friend[]>(selectedFriends);
 
   useEffect(() => {
     async function fetchFriends() {
@@ -40,8 +42,8 @@ const FriendsModal: React.FC<FriendsModalProps> = ({
             friendObject
           ]);
         });
-        console.log("allFriends Array:", allFriends);
-        console.log("highlightedFriends array:", highlightedFriends);
+        // console.log("allFriends Array:", allFriends);
+        // console.log("highlightedFriends array:", highlightedFriends);
       } catch (error) {
         if (axios.isAxiosError(error)) {
           console.error('Axios Error:', error.message);

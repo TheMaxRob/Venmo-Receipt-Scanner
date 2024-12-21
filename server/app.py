@@ -42,17 +42,6 @@ def get_friends_usernames(client, user_id):
         print(f"Error getting friends list: {str(e)}")
         return []
 
-
-# Route: Parse receipt using OCR
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from PIL import Image
-import pytesseract
-import cv2
-import numpy as np
-import re
-import os
-
 app = Flask(__name__)
 CORS(app)
 

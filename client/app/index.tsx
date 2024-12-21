@@ -1,4 +1,4 @@
-import Camera from "./camera";
+import Camera from "./components/camera";
 import { Text, View } from "react-native";
 
 export default function Index() {
