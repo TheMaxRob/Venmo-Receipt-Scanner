@@ -1,101 +1,126 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Modal, Pressable, StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import axios, { all } from "axios";
+import axios from "axios";
 import { Friend } from "types";
 import FriendCard from "./friendCard";
-import { Item } from "types";
+import { useDataContext } from "../DataContext"; // <-- Import the custom hook
 
 type FriendsModalProps = {
   modalVisible: boolean;
-  handleCloseModal: (highlightedFriends: Friend[]) => void;
-  selectedFriends: Friend[];
+  handleCloseModal: () => void; 
 };
 
 const FriendsModal: React.FC<FriendsModalProps> = ({
   modalVisible,
   handleCloseModal,
-  selectedFriends
 }) => {
+  const { friends, setFriends } = useDataContext();
+
   const [allFriends, setAllFriends] = useState<Friend[]>([]);
-  const [highlightedFriends, setHighlightedFriends] = useState<Friend[]>(selectedFriends);
+
+  const [highlightedFriends, setHighlightedFriends] = useState<Friend[]>(friends);
 
   useEffect(() => {
     async function fetchFriends() {
-      console.log("fetchFriends called");
       try {
-        console.log("fetching friends...");
-        const response = await axios.get("http://192.168.1.176:5000/get-friends-list");
-        console.log("response received from server");
-        const friends = response.data.friends;
-        console.log("Friends fetched from Venmo:", friends);
-        
-        friends.forEach((friend: string) => {
-          const friendObject: Friend = {
-            username: friend,
-            items: [],
-            amount: 0,
-            isSelected: false,
-          }
-          setAllFriends((prev) => [
-            ...prev,
-            friendObject
-          ]);
+        const response = await axios.get<{ friends: string[] }>(
+          "http://192.168.1.176:5000/get-friends-list"
+        );
+        const fetchedUsernames = response.data.friends;
+  
+        // Build the uniqueFriends array
+        const uniqueFriends: Friend[] = Array.from(
+          new Map(
+            fetchedUsernames.map((username: string) => [
+              username,
+              { username, items: [], amount: 0, isSelected: false } as Friend,
+            ])
+          ).values()
+        );
+  
+        // Mark them as selected if they're in highlightedFriends
+        const updatedFriends = uniqueFriends.map((f) => {
+          const isInHighlighted = highlightedFriends.some(
+            (selected) => selected.username === f.username
+          );
+          return { ...f, isSelected: isInHighlighted };
         });
-        // console.log("allFriends Array:", allFriends);
-        // console.log("highlightedFriends array:", highlightedFriends);
+  
+        setAllFriends(updatedFriends);
       } catch (error) {
-        if (axios.isAxiosError(error)) {
-          console.error('Axios Error:', error.message);
-          console.error('Error Code:', error.code);
-          console.error('Error Config:', error.config);
-        } else {
-          console.error('Unknown Error:', error);
-        }
+        console.error("Error fetching friends:", error);
       }
     }
+  
     fetchFriends();
-  }, [highlightedFriends]);
-
+  }, []);
+  
+  // Toggle a friend in or out of "highlightedFriends"
   const handleSelectFriend = (friend: Friend) => {
-    console.log("friend passed to handleSelectFriend:", friend);
-    friend.isSelected = !friend.isSelected;
-    setHighlightedFriends((prev) =>
-      prev.includes(friend)
-        ? prev.filter((thisFriend) => thisFriend !== friend)
-        : [...prev,  friend]
+    setHighlightedFriends((prev) => {
+      const isAlreadySelected = prev.some(
+        (selectedFriend) => selectedFriend.username === friend.username
+      );
+      // Toggle
+      if (isAlreadySelected) {
+        return prev.filter((f) => f.username !== friend.username);
+      } else {
+        return [...prev, { ...friend, isSelected: true }];
+      }
+    });
+
+    // Also update allFriends for immediate visual feedback
+    setAllFriends((prev) =>
+      prev.map((f) =>
+        f.username === friend.username
+          ? { ...f, isSelected: !f.isSelected }
+          : f
+      )
     );
-    console.log("new highlightedFriends:", highlightedFriends);
   };
 
+  // Called when user taps "Save" or closes the modal
+  const handleSave = () => {
+    // Update context with the newly selected friends
+    setFriends(highlightedFriends);
+    
+    // Then close the modal
+    handleCloseModal();
+  };
+  
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible} 
-        onRequestClose={() => handleCloseModal(highlightedFriends)} 
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <Pressable style={styles.closeButton} onPress={() => handleCloseModal(highlightedFriends)}>
-            <Text style={styles.closeText}>Save</Text>
-          </Pressable>
-          {allFriends.length > 0 ? (
-            allFriends.map((friend: Friend, index) => (
-              <Pressable key={index} onPress={() => handleSelectFriend(friend)}>
-                <FriendCard friend={friend} size="large"/> 
-              </Pressable>
-            ))
-          ) : (
-            <Text>Loading Friends...</Text>
-          )}
-        </SafeAreaView>
-      </Modal>
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={handleSave}
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            {/* "Save" button */}
+            <Pressable style={styles.closeButton} onPress={handleSave}>
+              <Text style={styles.closeText}>Save</Text>
+            </Pressable>
+
+            {allFriends.length > 0 ? (
+              allFriends.map((friend: Friend, index) => (
+                <Pressable key={index} onPress={() => handleSelectFriend(friend)}>
+                  <FriendCard friend={friend} size="large" />
+                </Pressable>
+              ))
+            ) : (
+              <Text>Loading Friends...</Text>
+            )}
+          </SafeAreaView>
+        </Modal>
       </SafeAreaView>
     </SafeAreaProvider>
   );
 };
+
+export default FriendsModal;
 
 const styles = StyleSheet.create({
   container: {
@@ -117,9 +142,4 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  usernameDisplay: {
-    color: 'black',
-  }
 });
-
-export default FriendsModal;

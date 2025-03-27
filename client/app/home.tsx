@@ -5,13 +5,13 @@ import { Item, Friend } from 'types';
 import FriendsModal from './components/friendsModal';
 import FriendCard from './components/friendCard';
 import ItemsModal from './itemsModal';
+import { useDataContext } from './DataContext';
 
 export default function Home() {
-  const { items } = useLocalSearchParams();
-  const parsedItems = items ? JSON.parse(items as string) : [];
+  const { items, setItems, friends, setFriends } = useDataContext();
 
-  const [displayedItems, setDisplayedItems] = useState<Item[]>(() => parsedItems);
-  const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
+  const [displayedItems, setDisplayedItems] = useState<Item[]>(items);
+  const [selectedFriends, setSelectedFriends] = useState<Friend[]>(friends);
 
   // Manage which item the user has "selected" to assign
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -78,10 +78,9 @@ export default function Home() {
 
 
   const handleReview = () => {
-    router.push({
-      pathname: '/review',
-      params: { items: JSON.stringify(selectedFriends) },
-    });
+    setItems(displayedItems);
+    setFriends(selectedFriends);
+    router.push("/review");
   };
 
 
@@ -111,7 +110,10 @@ export default function Home() {
                 onPress={() => handleSelectItem(item)}
               >
                 <Text style={styles.itemText}>
-                  {item.item}: ${item.cost.toFixed(2)}
+                  {item.item}
+                </Text>
+                <Text>
+                  ${item.cost.toFixed(2)}
                 </Text>
               </TouchableOpacity>
             );
@@ -130,23 +132,24 @@ export default function Home() {
             <Text>Add Friends +</Text>
           </TouchableOpacity>
 
-          {selectedFriends.map((friend, index) => {
-            return (
-              <TouchableOpacity
-                key={index}
-                onPress={() => handleFriendPress(friend)}
-              >
-                <FriendCard friend={friend} size="small" />
-              </TouchableOpacity>
-            );
-          })}
+          <View style={styles.friendCardsContainer}>
+            {selectedFriends.map((friend, index) => {
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleFriendPress(friend)}
+                >
+                  <FriendCard friend={friend} size="small" />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
           {/* Friends Modal */}
           {friendsModalVisible && (
             <FriendsModal
               modalVisible={friendsModalVisible}
-              handleCloseModal={handleCloseFriendsModal}
-              selectedFriends={selectedFriends}
+              handleCloseModal={() => setFriendsModalVisible(false)}
             />
           )}
 
@@ -154,8 +157,7 @@ export default function Home() {
           {itemsModalVisible && (
             <ItemsModal
               modalVisible={itemsModalVisible}
-              items={displayedItems}
-              handleCloseModal={handleCloseItemsModal}
+              handleCloseModal={() => setItemsModalVisible(false)}
             />
           )}
         </View>
@@ -233,5 +235,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
   },
+  friendCardsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8
+  }
 });
 

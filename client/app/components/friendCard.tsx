@@ -2,13 +2,11 @@ import { forwardRef } from "react";
 import { View, Text, StyleSheet, LayoutChangeEvent } from "react-native";
 import { Friend } from "types";
 
-// 1) Define a prop interface with an optional onPositionReady
 interface FriendCardProps {
   friend: Friend;
   size: string;
 }
 
-// 2) Pass that interface to forwardRef
 const FriendCard = forwardRef<View, FriendCardProps>(
   ({ friend, size }, ref) => {
 
@@ -35,7 +33,7 @@ const FriendCard = forwardRef<View, FriendCardProps>(
 
 const styles = StyleSheet.create({
   smallContainer: {
-    flexDirection: "row",
+    flexDirection: "column",
     paddingVertical: 12,
     paddingHorizontal: 8,
     alignItems: "center",
@@ -46,7 +44,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
   },
   largeContainer: {
-    flexDirection: "row",
+    flexDirection: "column",
     padding: 12,
     justifyContent: "center",
     alignItems: "center",
@@ -60,14 +58,17 @@ const styles = StyleSheet.create({
   smallUsernameText: {
     fontSize: 12,
     fontWeight: "bold",
+    marginBottom: 4,
   },
   largeUsernameText: {
     fontSize: 20,
     fontWeight: "bold",
+    marginBottom: 4,
   },
   smallMoneyText: {
     fontSize: 12,
     fontStyle: "italic",
+    fontWeight: "bold",
   },
   largeMoneyText: {
     fontSize: 16,

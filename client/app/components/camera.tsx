@@ -6,6 +6,8 @@ import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 export default function Camera() {
+  console.log("Rendering Camera component");
+
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState<any>(null);

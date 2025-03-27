@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Friend, Item } from 'types';
 import axios from 'axios';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDataContext } from './DataContext';
 
 interface PaymentRequestItem {
   assigned_to: string;
@@ -11,13 +13,20 @@ interface PaymentRequestItem {
 }
 
 export default function Review() {
-  const { items } = useLocalSearchParams();
-  const selectedFriends: Friend[] = items ? JSON.parse(items as string) : [];
+
+  const { friends, items } = useDataContext();
+  
+  const router = useRouter();
+
+
+  const handleBackButtonPress = () => {
+    router.push("/home");
+  }
 
   const handlePayments = async () => {
     try {
       const assignedItems: PaymentRequestItem[] = [];
-      selectedFriends.forEach((friend) => {
+      friends.forEach((friend) => {
         friend.items?.forEach((item) => {
           assignedItems.push({
             assigned_to: friend.username,
@@ -34,37 +43,43 @@ export default function Review() {
         }
       );
   
-      console.log("pPayment request response:", response.data);
+      console.log("Payment request response:", response.data);
     } catch (error) {
       console.error("Error requesting payments", error);
     }
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {selectedFriends.map((friend, friendIndex) => {
-        const total = friend.items?.reduce((acc, item) => acc + (item.cost ?? 0), 0) ?? 0;
-        return (
-          <View key={friendIndex} style={styles.friendSection}>
-            <Text style={styles.friendName}>{friend.username}</Text>
-
-            {friend.items?.map((item, itemIndex) => (
-              <Text key={itemIndex} style={styles.itemLine}>
-                {item.item}: ${item.cost.toFixed(2)}
-              </Text>
-            ))}
-
-            <Text style={styles.totalLine}>
-              Total: <Text style={styles.bold}>${total.toFixed(2)}</Text>
-            </Text>
-          </View>
-        );
-      })}
-      <Pressable style={styles.confirmButton} onPress={handlePayments}>
-        <Text>Request Payments</Text>
+    <SafeAreaView style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
+      <Pressable style={styles.backButton} onPress={handleBackButtonPress}>
+        <Text style={styles.backButtonText}>Back</Text>
       </Pressable>
-    </ScrollView>
+      <ScrollView style={styles.container}>
+        {friends.map((friend, friendIndex) => {
+          const total = friend.items?.reduce((acc, item) => acc + (item.cost ?? 0), 0) ?? 0;
+          return (
+            <View key={friendIndex} style={styles.friendSection}>
+              <Text style={styles.friendName}>{friend.username}</Text>
 
+              {friend.items?.map((item, itemIndex) => (
+                <Text key={itemIndex} style={styles.itemLine}>
+                  {item.item}: ${item.cost.toFixed(2)}
+                </Text>
+              ))}
+
+              <Text style={styles.totalLine}>
+                Total: <Text style={styles.bold}>${total.toFixed(2)}</Text>
+              </Text>
+            </View>
+          );
+        })}
+        <Pressable style={styles.confirmButton} onPress={handlePayments}>
+          <Text style={styles.confirmButtonText}>Request Payments</Text>
+        </Pressable>
+      </ScrollView>
+    </View>
+    </SafeAreaView>
   );
 }
 
@@ -101,12 +116,35 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   confirmButton: {
+    backgroundColor: '#007BFF', 
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center', 
+    marginTop: 20,
+    elevation: 3, 
+  },
+  confirmButtonText: {
+    color: '#FFF',
+    fontSize: 16,
     fontWeight: 'bold',
-    marginLeft: 20,
-    marginRight: 20,
-    marginTop: 10,
-    marginBottom: 10,
-    backgroundColor: 'red',
-    maxWidth: 250,
-  }
+  },
+  backButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    backgroundColor: '#FF5A5F', 
+    padding: 10,
+    borderRadius: 20,
+    elevation: 3,
+    zIndex: 10,
+  },
+  backButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+    zIndex: 10
+  },
 });

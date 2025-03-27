@@ -4,10 +4,11 @@ import React from 'react'
 import { TouchableOpacity, SafeAreaView, Image, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import axios from 'axios';
+import { useDataContext } from './DataContext';
 
+const { setItems } = useDataContext();
 
 const handleSubmitPhoto = async (photo: CameraCapturedPicture) => {
-  console.log("handleSubmitPhoto called");
     const formData = new FormData();
     formData.append('file', {
       uri: photo.uri,
@@ -25,10 +26,8 @@ const handleSubmitPhoto = async (photo: CameraCapturedPicture) => {
   
       console.log("Passing params:", response.data.items);
       // Navigate home with the parsed items
-      router.push({
-        pathname: '/home',
-        params: { items: JSON.stringify(response.data.items) },
-      });
+      setItems(response.data.items)
+      router.push("/home");
     } catch (error) {
       if (axios.isAxiosError(error)) {
           console.error('Axios Error:', error.message);
